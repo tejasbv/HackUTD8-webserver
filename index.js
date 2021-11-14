@@ -2,13 +2,23 @@ const express = require('express')
 const multer = require('multer')
 //const upload = multer({ dest: 'uploads/' })
 const fs = require('fs');
-//var path = require('path');
+var path = require('path');
 
 const app = express()
 const PORT = 8000;
 const state = {
     phone: 111 - 000 - 0000,
     claims: {},
+};
+var mime = {
+    html: 'text/html',
+    txt: 'text/plain',
+    css: 'text/css',
+    gif: 'image/gif',
+    jpg: 'image/jpeg',
+    png: 'image/png',
+    svg: 'image/svg+xml',
+    js: 'application/javascript'
 };
 // //app.use(cors());
 let storage = multer.diskStorage({
@@ -19,10 +29,10 @@ let storage = multer.diskStorage({
         var dd = String(today.getDate()).padStart(2, '0');
         var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
         var yyyy = today.getFullYear();
-        var id = state.claims[file.fieldname.substring(0,10)].length-1
-        var name = file.fieldname + '-'+id+"-"+file.originalname
-        state.claims[file.fieldname.substring(0,10)][id].images_names.push(name)
-        console.log(state.claims[file.fieldname.substring(0,10)][id].images_names)
+        var id = state.claims[file.fieldname.substring(0, 10)].length - 1
+        var name = file.fieldname + '-' + id + "-" + file.originalname
+        state.claims[file.fieldname.substring(0, 10)][id].images_names.push(name)
+        console.log(state.claims[file.fieldname.substring(0, 10)][id].images_names)
         cb(null, name)
     }
 })
@@ -44,14 +54,44 @@ app.post('/image_upload', upload.any(), function (req, res) {
             if (err) {
                 throw err;
             }
-            //console.log("Directory is created.");
+            console.log("Directory is created.");
         });
     } else {
-        //console.log("Directory already exists.");
+        console.log("Directory already exists.");
     }
 
     res.json("successfully sent the data")
     //console.log(req.file, req.body)
+});
+
+
+app.get('/get_images/:phone&:index&?:id', function (req, res) {
+    //res.send(fs.open("/home/tejas/Documents/HackUTD8-webserver/uploads/4694861197-DL-0-download.jpeg"))
+    // var file = "/home/tejas/Documents/HackUTD8-webserver/uploads/4694861197-DL-0-download.jpeg";
+    // // if (file.indexOf(dir + path.sep) !== 0) {
+    // //     return res.status(403).end('Forbidden');
+    // // }
+    // var type = mime[path.extname(file).slice(1)] || 'text/plain';
+    // var s = fs.createReadStream(file);
+    // s.on('open', function () {
+    //     res.set('Content-Type', type);
+    //     s.pipe(res);
+    // });
+    // s.on('error', function () {
+    //     res.set('Content-Type', 'text/plain');
+    //     res.status(404).end('Not found');
+    // });
+    console.log(req.params)
+    state.phone = req.params.phone
+    console.log(req.params.id)
+    const id = req.params.id == '-1'? state.claims[state.phone].length-1:req.params.id
+    console.log(id)
+    console.log(state.claims[state.phone][id])
+    const img = 'uploads/'+state.claims[state.phone][id].images_names[req.params.index]
+   
+    console.log(img)
+    //res.json(array)
+    res.download(img)
 });
 app.post('/newClaim', (req, res) => {
     const claim_request = req.body
